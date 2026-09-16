@@ -454,7 +454,8 @@ def download_torrent(url, auth_headers, release_name, is_dupe=False, dupe_id=Non
         log_to_file(os.path.join(TMP_DIR, 'dupe_general_error.log' if is_dupe else 'torrent_general_error.log'), f"An error occurred: {str(e)}")
         print(f"{bcolors.FAIL}An error occurred: {str(e)}{bcolors.ENDC}")
 
-def upload_torrent(torrent_file, template_file, auth_headers, category_id, imdb_id, mediainfo_text, dupedl_enabled):
+def upload_torrent(torrent_file, template_file, auth_headers, category_id, imdb_id, mediainfo_text, dupedl_enabled,
+                   reqid=0):
     """
     Uploads a torrent file to the specified site with the required details.
 
@@ -465,6 +466,8 @@ def upload_torrent(torrent_file, template_file, auth_headers, category_id, imdb_
         category_id (int): The ID of the category of the torrent.
         imdb_id (str): The IMDB ID associated with the torrent.
         mediainfo_text (str): The mediainfo text to be included in the upload.
+        dupedl_enabled (bool): If true, a 409 (already exists) response downloads the existing torrent.
+        reqid (int): The ID of the request this upload fills. 0 means no request.
 
     Returns:
         None
@@ -488,7 +491,7 @@ def upload_torrent(torrent_file, template_file, auth_headers, category_id, imdb_
         data = {
             'category': category_id,
             'imdbId': imdb_id,
-            'reqid': 0,
+            'reqid': reqid,
             'section': 'new',
             'frileech': int(f"{config.get('UploadForm', 'FREELEECH')}"),
             'anonymousUpload': int(f"{config.get('UploadForm', 'ANONYMOUS')}"),

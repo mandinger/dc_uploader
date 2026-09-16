@@ -1,2 +1,6 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Shell scripts must keep LF on checkout, even on Windows with core.autocrlf=true,
+# otherwise bash fails with "cannot execute: required file not found"
+*.sh text eol=lf

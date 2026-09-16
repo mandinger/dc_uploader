@@ -12,6 +12,8 @@ print_help() {
     echo
     echo "    -cat, --cat: Use a category number here to override the filters.json."
     echo
+    echo "    --req: Request ID to fill with this upload. You cannot fill your own request."
+    echo
     echo "    -m, --mv: Moves provided directory to DATADIR. May break other torrents that rely on the same data," \
     "use with caution."
     echo
@@ -44,6 +46,7 @@ LN=false
 CP=false
 MV=false
 CAT_ID=""
+REQ_ID=""
 
 # Initial argument check
 if [ $# -eq 0 ] || [[ "$data_path" == "--help" ]] || [[ "$data_path" == "-h" ]]; then
@@ -54,7 +57,7 @@ fi
 
 if [ $# -gt 1 ]; then
     # Only bother parsing args if an arg beside path is specified
-    valid_args=("-h" "--help" "-l" "--ln" "-c" "--cp" "-m" "--mv" "-cat" "--cat")
+    valid_args=("-h" "--help" "-l" "--ln" "-c" "--cp" "-m" "--mv" "-cat" "--cat" "--req")
     found=false
 
     for item in "${valid_args[@]}"; do
@@ -68,7 +71,7 @@ if [ $# -gt 1 ]; then
         exit 1
     fi
 
-    if ! opts=$(getopt -o 'hlcm' -l 'help,ln,cp,mv,cat:' -n "$script" -- "$@"); then
+    if ! opts=$(getopt -o 'hlcm' -l 'help,ln,cp,mv,cat:,req:' -n "$script" -- "$@"); then
         echo -e "${red}ERROR: Failed to parse options. See --help.${ncl}" >&2
         exit 1
     fi
@@ -94,6 +97,10 @@ if [ $# -gt 1 ]; then
                 CAT_ID="$2"
                 shift 2
                 ;;
+            --req)
+                REQ_ID="$2"
+                shift 2
+                ;;
             -h | --help)
                 print_help
                 exit 0
@@ -109,6 +116,12 @@ if [ $# -gt 1 ]; then
                 ;;
         esac
     done
+
+    # Validate request ID before any data gets linked/copied/moved
+    if [ -n "$REQ_ID" ] && ! [[ "$REQ_ID" =~ ^[0-9]+$ ]]; then
+        echo -e "${red}ERROR: --req must be a numeric request ID: $REQ_ID${ncl}" >&2
+        exit 1
+    fi
 fi
 
 # Only continue if config validator returns on fatal errors
@@ -185,10 +198,13 @@ fi
 # Run using venv
 source "/venv/dc_uploader/bin/activate"
 
-# Build python command with optional category override
+# Build python command with optional category override and request ID
 python_args=("$root_dir/backend.py" "$uploaded_directory")
 if [ -n "$CAT_ID" ]; then
     python_args+=("-cat" "$CAT_ID")
+fi
+if [ -n "$REQ_ID" ]; then
+    python_args+=("--req" "$REQ_ID")
 fi
 
 if python3 "${python_args[@]}"; then

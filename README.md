@@ -142,6 +142,8 @@ By default, the program assumes that the data to be uploaded already exists in D
 #### Optional arguments:
 -h, --help: Prints help. Called via `upload.sh -h` or `upload.sh --help`.
 
+--req: Request ID to fill with this upload, e.g. `upload.sh "/home/torrentdata/this.is.a.nice.movie-grp" --req 123`. You cannot fill your own request.
+
 Following arguments are primarily used when user is using discrete directories.
 
 -l, --ln: Hardlinks provided directory to DATADIR. If hardlink fails, fallback to symlink.

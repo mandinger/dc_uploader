@@ -188,6 +188,7 @@ def main():
     parser = argparse.ArgumentParser(description="dc_uploader Backend")
     parser.add_argument('directory', help="The name of the release directory to upload")
     parser.add_argument('-cat', '--cat', help="Manual Category ID override", type=int, default=None)
+    parser.add_argument('-req', '--req', help="Request ID to fill with this upload", type=int, default=0)
     args = parser.parse_args()
     # ------------------------------------
 
@@ -227,6 +228,7 @@ def main():
         # Set variables from CLI arguments
         directory_name = args.directory
         manual_cat_id = args.cat
+        request_id = args.req
 
         ascii_art_header("Header", program_version)
         version_check(program_version)
@@ -613,6 +615,8 @@ def main():
 
         # Print and log variables before upload
         print(f"{bcolors.YELLOW}Uploading torrent...\n{bcolors.ENDC}")
+        if request_id:
+            print(f"{bcolors.YELLOW}Filling request ID: {request_id}\n{bcolors.ENDC}")
 
         # Log variables
         log(f"Torrent file: {torrent_file}", log_file_path)
@@ -620,11 +624,13 @@ def main():
         log(f"Auth Headers: {auth_headers}", log_file_path) # Now logging headers instead of cookies
         log(f"Category ID: {category_id}", log_file_path)
         log(f"IMDB ID: {imdb_id}", log_file_path)
+        log(f"Request ID: {request_id}", log_file_path)
         log(f"Mediainfo content length: {len(mediainfo_content) if mediainfo_content else '0'}", log_file_path)
 
         try:
             # We pass auth_headers here instead of cookies
-            upload_torrent(torrent_file, template_content, auth_headers, category_id, imdb_id, mediainfo_content, dupedl_enabled)
+            upload_torrent(torrent_file, template_content, auth_headers, category_id, imdb_id, mediainfo_content, dupedl_enabled,
+                           reqid=request_id)
             log_upload_details(upload_details, upload_log_path, duplicate_found=False)
             update_status(directory, 'uploaded')
             update_upload_status(name=directory_name, new_status='uploaded')
